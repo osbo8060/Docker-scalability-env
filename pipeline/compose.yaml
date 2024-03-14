@@ -1,0 +1,57 @@
+services:
+  driver:
+    build: driver
+    container_name: driver
+    deploy:
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 2gb
+    ports:
+      - "8888:8888"
+      - "4040-4060:4040-4060"
+      - "9999:9999"
+      - "10005:10005"
+    command: ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--allow-root"]
+  hdfs:
+    tty: true
+    build: file-system
+    container_name: hdfs
+    deploy:
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 2gb
+    privileged: true
+    ports:
+      - "9000:9000"
+      - "9870:9870"
+  spark-master:
+    build: spark
+    container_name: spark-master
+    deploy:
+      resources: # setting these to be pretty low becuase I dont know what hardware yall have (we can make all this bigger on our cloud vm)
+#        reservations: # reserves hardware (minimums)
+#          cpus: '1.00'
+#          memory: 2gb
+        limits: # limits hardware (maximum)
+          cpus: '1.0'
+          memory: 2gb
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+    depends_on:
+      - hdfs
+    command: spark/sbin/start-master.sh
+  spark-worker:
+    build: spark
+    deploy:
+      mode: replicated
+      replicas: 1
+#      resources:
+#        limits:
+#          cpus: '1.25'
+#          memory: 1gb
+    depends_on:
+      - spark-master
+    command: spark/sbin/start-worker.sh spark://spark-master:7077
