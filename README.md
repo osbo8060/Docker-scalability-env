@@ -1,4 +1,4 @@
-# Data engineering group project 2024
+# Data engineering project 2024
 #### note: this is just how I have initialized the project, we can change any and all of this as needed
 ## Dataset
 ```text
